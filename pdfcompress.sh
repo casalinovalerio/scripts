@@ -7,8 +7,8 @@ command -v gs || error "You need gs to run this script"
        	error "You need to input at least 1 filename";
 
 infile="$1"
-([ $# -eq 2 ] && [ "$1" != "$2" ] && outfile="$2") ||\
-       	outfile="output.pdf" 
+outfile="output.pdf" 
+[ $# -eq 2 ] && [ "$1" != "$2" ] && outfile="$2"
 
 gs -sDEVICE=pdfwrite \
 	-dCompatibilityLevel=1.4 \
