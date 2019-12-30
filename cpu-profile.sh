@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/zsh
 
 error() { printf "E: $1\\n"; exit 1; }
 
@@ -32,7 +32,7 @@ sudo -s <<EOF
 
 cpufreqctl --governor --set=$govChoice
 cpufreqctl --frequency-max --set=$freqChoice
-for i in {nCpu..nDis}
+for i in {$nCpu..$nDis}
 do
 	cpufreqctl --off --core=$i
 done
