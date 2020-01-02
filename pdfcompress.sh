@@ -28,6 +28,9 @@ usage()
 	  - This script relies on GhostScript (gs), please install it 
 	    before you run this script: https://www.ghostscript.com/download
 	    (it is included in many distro's repos by default)
+	  - Might produce a larger output than the input...
+	Todo:
+	  - Include ILovePDF's API to compress with curl (?)
 
 WHERETO
 }
@@ -49,12 +52,12 @@ compress()
 		-dGrayImageResolution=150		\
 		-dMonoImageDownsampleType=/Bicubic	\
 		-dMonoImageResolution=150		\
-		-dPrinted=false
+		-dPrinted=false				\
 		-sOutputFile="$2"			\
 		"$1"
 }
 
-command -v gs || error "You need gs to run this script"
+command -v gs > /dev/null || error "You need gs to run this script"
 
 while getopts "hi:m:o:" opt; do
 	case $opt in
@@ -67,6 +70,7 @@ while getopts "hi:m:o:" opt; do
 		i)
 			[ ! -f "$OPTARG" ] && error "$OPTARG is not a file!"
 			inFile="$OPTARG"
+			;;
 		o)
 			outFile="$OPTARG"
 			;;
