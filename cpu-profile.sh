@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env sh
 
 error() { printf "E: $1\\n"; exit 1; }
 
@@ -36,4 +36,4 @@ printf "All done!\\nGovernor status:\\n"
 cpufreqctl  --governor | tr ' ' '\n' | nl | sed "s/^     /Core#/g" | tr '\t' '-'
 
 printf "Frequency report:\\n"
-for i in $( seq 0 $nCpu ); do printf "Core#$i: "; cpufreqctl --frequency --core=$i); done
+for i in $( seq 0 $nCpu ); do printf "Core#$i: "; cpufreqctl --frequency --core=$i; done
