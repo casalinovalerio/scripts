@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 ########################################################################
 # Script name	: crypt.sh 
@@ -75,11 +75,8 @@ while getopts "ho:d:e:" opt; do
 			exit 0
 			;;
 		:)
-        	error "Option -$OPTARG requires an argument."
-        	;;
-        \?) 
-        	error "Invalid option: -$OPTARG"
-        	;;
+        		error "Option -$opt requires an argument."
+        		;;
 	esac
 done
 
