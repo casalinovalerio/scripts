@@ -1,6 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env sh
 # This script round-crops an image using ImageMagick
-# If you don't have it, just get it.
 
 error() { printf "$1\n"; exit 1; }
 
