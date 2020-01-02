@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env sh
 # Author:	Valerio Casalino
 # Description:	Making systemd reduce boot time removing server features
 # Licence:	GPLv3
@@ -28,3 +28,5 @@ message "All done."
 message "Disabling NetworkManager-wait-online (see script for info)..."
 sudo systemctl disable NetworkManager-wait-online.service > /dev/null 2>&1
 message "Done. Now your boot time should be improved!"
+
+# I want to add more features but i need time
