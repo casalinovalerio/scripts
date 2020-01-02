@@ -1,25 +1,41 @@
-#!/bin/bash
+#!/usr/bin/env sh
 
-error() { printf "$1\\n"; exit 1; }
+###############################################################################
+# Script name		: pdfcompress.sh
+# Author		: Valerio Casalino
+# Description		: Compress your PDF
+###############################################################################
+
+SCRIPT_PATH=$( readlink -f $0 )
+SCRIPT_NAME=$( printf "$SCRIPT_PATH" | xargs basename )
+
+error() { printf "$1\\n" >&2 ; exit 1; }
+usage()
+{
+	cat <<WHERETO
+	Script path:
+	$SCRIPT_PATH
+
+	Usage: $SCRIPT_NAME [options] <arguments> inputfile.pdf
+
+	-m	Mode: choose the level of compression between low, medium
+		and high, but the higher the level, the higher the time.
+	-o	Output: choose the output file name.
+	-h	Help: display this message 
+
+WHERETO
+}
 
 command -v gs || error "You need gs to run this script"
 
 infile="$1"
+outfile="$1.compressed"
+quality="72"
 tmpfile="$( mktemp )"
 
 [ -z "$infile" ] && error "$0 [infile] (opt)[outfile] (opt)[quality]"
-
-if [ ! -z "$2" ]; then 
-	outfile="$2"
-else
-	outfile="-" #stdout
-fi
-
-if [ ! -z "$3" ]; then
-	quality="$3"
-else
-	quality="72"
-fi
+[ ! -z "$2" ] && outfile="$2"
+[ ! -z "$3" ] && quality="$3"
 
 gs						\
 	-q -dNOPAUSE -dBATCH -dSAFER		\
