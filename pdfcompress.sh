@@ -18,46 +18,70 @@ usage()
 
 	Usage: $SCRIPT_NAME [options] <arguments> inputfile.pdf
 
-	-m	Mode: choose the level of compression between low, medium
-		and high, but the higher the level, the higher the time.
+	-m	Mode: choose the level of output quality [low, medium, high].
+	-i	Input: choose the input file.
 	-o	Output: choose the output file name.
-	-h	Help: display this message 
+	-h	Help: display this message.
+
+	Notes:
+	  - If no mode is specified, the medium one will be selected.
+	  - This script relies on GhostScript (gs), please install it 
+	    before you run this script: https://www.ghostscript.com/download
+	    (it is included in many distro's repos by default)
 
 WHERETO
 }
 
+compress()
+{
+	gs						\
+		-q -dNOPAUSE -dBATCH -dSAFER		\
+		-sDEVICE=pdfwrite			\
+		-dCompatibilityLevel=1.3		\
+		-dSimulateOverprint=true		\
+		-dPDFSETTINGS=/"$3"			\
+		-dEmbedAllFonts=true			\
+		-dSubsetFonts=true			\
+		-dAutoRotatePages=/None			\
+		-dColorImageDownsampleType=/Bicubic	\
+		-dColorImageResolution=150		\
+		-dGrayImageDownsampleType=/Bicubic	\
+		-dGrayImageResolution=150		\
+		-dMonoImageDownsampleType=/Bicubic	\
+		-dMonoImageResolution=150		\
+		-dPrinted=false
+		-sOutputFile="$2"			\
+		"$1"
+}
+
 command -v gs || error "You need gs to run this script"
 
-infile="$1"
-outfile="$1.compressed"
-quality="72"
-tmpfile="$( mktemp )"
+while getopts "hi:m:o:" opt; do
+	case $opt in
+		m)
+			[ "$OPTARG" = "low" ] && mode="screen"
+			[ "$OPTARG" = "medium" ] && mode="ebook"
+			[ "$OPTARG" = "high" ] && mode="printer"
+			[ -z "$mode" ] && error "$OPTARG is not a possible value.."
+			;;
+		i)
+			[ ! -f "$OPTARG" ] && error "$OPTARG is not a file!"
+			inFile="$OPTARG"
+		o)
+			outFile="$OPTARG"
+			;;
+		h)
+			usage
+			exit 0
+			;;
+		:)
+			error "Option -$opt requires an argument"
+			;;
+	esac
+done
 
-[ -z "$infile" ] && error "$0 [infile] (opt)[outfile] (opt)[quality]"
-[ ! -z "$2" ] && outfile="$2"
-[ ! -z "$3" ] && quality="$3"
+[ -z "$inFile" ] && error "You need at least the input file..."
+[ -z "$outFile" ] && outFile="$inFile.compressed"
+[ -z "$mode" ] && mode="ebook"
 
-gs						\
-	-q -dNOPAUSE -dBATCH -dSAFER		\
-	-sDEVICE=pdfwrite			\
-	-dCompatibilityLevel=1.3		\
-	-dPDFSETTINGS=/screen			\
-	-dEmbedAllFonts=true			\
-	-dSubsetFonts=true			\
-	-dAutoRotatePages=/None			\
-	-dColorImageDownsampleType=/Bicubic	\
-	-dColorImageResolution=$quality		\
-	-dGrayImageDownsampleType=/Bicubic	\
-	-dGrayImageResolution=$quality		\
-	-dMonoImageDownsampleType=/Subsample	\
-	-dMonoImageResolution=$quality		\
-	-sOutputFile="$tmpfile"			\
-	"$infile"
-
-[ ! -f "$infile" -o ! -f "$tmpfile" ] && error "No file written"
-
-insize=$( wc -c "$infile" | cut -f1 -d\  )
-outsize=$( wc -c "$tmpfile" | cut -f1 -d\ )
-[ "$insize" -lt "$outsize" ] && error "Input smaller that output"
-
-mv "$tmpfile" "$outfile"
+compress "$inFile" "$outFile" "$mode"
