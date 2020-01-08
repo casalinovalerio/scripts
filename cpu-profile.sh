@@ -11,11 +11,20 @@ SCRIPT_NAME=$( printf "%s" "$SCRIPT_PATH" | xargs basename )
 RED="\033[31m"
 NCL="\033[0m"
 
+# Check if cpufrequctl is installed
+command -v cpufreqctl || error "You'll need cpufreqctl"
+
 # Available governors
 CON="conservative"
 PER="performance"
 SCH="schedutil"
 OND="ondemand"
+
+# Available frequencies
+AVAIL_FRQ=$( cpufreqctl --frequency --available | tr ' ' '\n' )
+
+# Maximum number of cores
+MAX_CORES=$( find /sys/devices/system/cpu/ -maxdepth 1 -name "*cpu[0-9]*" -type d | wc -l )
 
 error() 
 { 
@@ -73,50 +82,112 @@ choose_governor()
 
 choose_frequency()
 {
-	avail=$( cpufreqctl --frequency --available | tr ' ' '\n' )
 	printf "Choose frequency:\\n"
-	printf "%s" "$avail" | nl
+	printf "%s" "$AVAIL_FRQ" | nl
 	read -r choice || return 1
 	[ "$choice" -le 0 ] && return 1
-	freq=$( printf "%s" "$avail" | tail -n "$choice" | head -n 1 )
+	freq=$( printf "%s" "$AVAIL_FRQ" | tail -n "$choice" | head -n 1 )
 	printf "%s" "$freq"
 }
 
 choose_cores()
 {
-	max=$(	find /sys/devices/system/cpu/ 					\
-			-maxdepth 1						\
-			-name "*cpu[0-9]*"					\
-			-type d 						\
-		| wc -l )
-	printf "Choose core number [max $max]:\\n"
+	printf "Choose core number [max $MAX_CORES]:\\n"
 	read -r choice
-	{ [ "$choice" -lt 1 ] || [ "$choice" -gt "$max" ]; } && return 1
+	{ [ "$choice" -lt 1 ] || [ "$choice" -gt "$MAX_CORES" ]; } && return 1
 	printf "%s" "$choice"
 }
 
+# args: mode
+enable_powertop()
+{
+	sudo powertop --auto-tune
+	[ "$1" = "full" ] && return 0
+	sudo -s <<HERETO
+	for i in $( ls /sys/bus/usb/devices/ )
+	do
+		echo "on" > "/sys/bus/usb/devices/$i/power/control"
+	done
+HERETO
+}
 
-# Check if cpufrequctl is installed
-command -v cpufreqctl || error "You'll need cpufreqctl"
+
+while getopts "hyf:c:g:p:" opt; do
+	case $opt in
+		h)
+			usage
+			exit 0
+			;;
+		y)
+			YES="y"
+			;;
+		f)
+			[ -n "$FRQ" ] && error "Too many frequencies"
+			printf "%s" "$AVAIL_FRQ" | grep "$OPTARG" 		\
+				|| error "Freq $OPTARG not available."
+			FRQ="$OPTARG"
+			;;
+		g)
+			[ -n "$GOV" ] && error "Too many governors"
+			
+			{  [ "$OPTARG" = "$CON" ]				\
+			|| [ "$OPTARG" = "$SCH" ]				\
+			|| [ "$OPTARG" = "$OND" ]				\
+			|| [ "$OPTARG" = "$PER" ];				\
+			} && GOV="$OPTARG"
+			
+			[ -z "$GOV" ] && error "$OPTARG is not accepted."
+			;;
+		c)
+			[ -n "$CRS" ] && error "Too many cores declarations"
+
+			{  [ "$OPTARG" -lt 1 ] 					\
+			|| [ "$OPTARG" -gt "$MAX_CORES" ]; 			\
+			} && error "Too many cores: $OPTARG"
+
+			CRS="$OPTARG"
+			;;
+		p)
+			command -v powertop || error "You need powertop."
+			
+			[ -n "$PWRTOP" ] && error "Too many powertop opt"
+
+			{  [ "$OPTARG" = "nousb" ]				\
+			|| [ "$OPTARG" = "full" ];				\
+			} && PWRTOP="$OPTARG"
+
+			[ -z "$PWRTOP" ] && error "$OPTARG not accepted."
+			;;
+		*)
+			usage
+			error "Unknown argument: -$opt"
+			;;
+	esac
+done
 
 # Print out the driver
 DRIVER=$( cpufreqctl --driver )
 printf "Using '$DRIVER' driver\\n"
 
-GOV=$( choose_governor ) || error "Failed to get governor"
-FRQ=$( choose_frequency ) || error "Failed to get frequency"
-CRS=$( choose_cores ) || error "Failed to get cores"
+# Get choices if not already defined
+[ -z "$GOV" ] && GOV=$( choose_governor || error "Failed to get governor" )
+[ -z "$FRQ" ] && FRQ=$( choose_frequency || error "Failed to get frequency" )
+[ -z "$CRS" ] && CRS=$( choose_cores || error "Failed to get cores" )
 
-confirmation "$GOV" "$FRQ" "$CRS" || error "Abort."
+# Get confirmation
+[ -z "$YES" ] && confirmation "$GOV" "$FRQ" "$CRS" || error "Abort."
+
+
 printf "Applying changes...\\n"
+# Governor and frequency
+sudo cpufreqctl --governor --set=$GOV
+sudo cpufreqctl --frequency-max --set=$FRQ
 
+# Manage cores
+MAX_CORES=$(( MAX_CORES-1 ))
+for i in $( seq $CRS $MAX_CORES ); do sudo cpufreqctl --off --core=$i; done
+CRS=$(( CRS-1 ))
+for i in $( seq 0 $CRS ); do sudo cpufreqctl --on --core=$i; done
 
-sudo cpufreqctl --governor --set=$govChoice
-sudo cpufreqctl --frequency-max --set=$freqChoice
-for i in $( seq $nDis $nCpu | tac ); do sudo cpufreqctl --off --core=$i; done
-
-printf "All done!\\nGovernor status:\\n"
-cpufreqctl  --governor | tr ' ' '\n' | nl | sed "s/^     /Core#/g" | tr '\t' '-'
-
-printf "Frequency report:\\n"
-for i in $( seq 0 $nCpu ); do printf "Core#$i: "; cpufreqctl --frequency --core=$i; done
+# Powertop
+[ -n "$PWRTOP" ] && enable_powertop "$PWRTOP"
