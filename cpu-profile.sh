@@ -14,19 +14,19 @@ freqChoice=$( printf "$(cpufreqctl --frequency --available | tr ' ' '\n')" | dme
 
 nCpu=$(find /sys/devices/system/cpu/ -maxdepth 1 -name "*cpu[0-9]*" -type d | wc -l)
 printf "How many cores you want to disable? [max=$nCpu -1]\\n"
-let nCpu=nCpu-1
+nCpu=$(( nCpu-1 ))
 nDis=$( for n in $( seq 0 $nCpu ); do printf "$n\\n"; done | dmenu ) || exit
 
 printf "Governor choice: $govChoice\\n"
 printf "Frequency choice: $freqChoice\\n"
 printf "Cores to disable: $nDis\\n"
 printf "Is it correct? [yY/nN]: "
-read yn
+read -r yn
 [ $yn != 'y' ] && [ $yn != 'Y' ] && error "Abort."
 
 printf "Applying changes...\\n"
-let nDis=nCpu-nDis
-let nDis=nDis+1
+nDis=$(( nCpu-nDis ))
+nDis=$(( nDis+1 ))
 
 sudo cpufreqctl --governor --set=$govChoice
 sudo cpufreqctl --frequency-max --set=$freqChoice
