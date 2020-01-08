@@ -8,7 +8,7 @@ message() { printf "M: $1\\n"; }
 
 # You need to use systemd and run as root
 pidof systemd || error "You need systemd! Abort.";
-[ $EUID -ne 0 ] && error "Run as root please"
+[ $( whoami ) != "root" ] && error "Run as root please"
 
 message "Script location: $( readlink -f $0 )"
 

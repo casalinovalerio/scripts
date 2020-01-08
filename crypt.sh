@@ -77,6 +77,9 @@ while getopts "ho:d:e:" opt; do
 		:)
         		error "Option -$opt requires an argument."
         		;;
+		*)
+			error "Unknown option $opt"
+			;;
 	esac
 done
 

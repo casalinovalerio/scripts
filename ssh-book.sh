@@ -15,7 +15,7 @@ BOOKMARKS="$BOOKMARKSPATH/ssh_bookmarks"
 [ ! -f "$BOOKMARKS" ] && printf "# The syntax is simple \"hostname:user:ipv4\"\\n" > "$BOOKMARKS"
 
 # Invite user to populate it following the syntax
-[ $( cat "$BOOKMARKS" | wc -l ) -le 1 ] && error "No bookmarks in bookmark file ($BOOKMARKS)"
+[ $( wc -l < "$BOOKMARKS" ) -le 1 ] && error "No bookmarks in bookmark file ($BOOKMARKS)"
 
 # Check if drun is installed
 command -v dmenu > /dev/null || error "Pleas install dmenu"
