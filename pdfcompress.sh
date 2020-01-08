@@ -48,14 +48,14 @@ compress()
 		-dPDFSETTINGS=/"$3"						\
 		-dEmbedAllFonts=true						\
 		-dSubsetFonts=true						\
-		-dAutoRotatePages=/None					\
+		-dAutoRotatePages=/None						\
 		-dColorImageDownsampleType=/Bicubic				\
 		-dColorImageResolution=150					\
 		-dGrayImageDownsampleType=/Bicubic				\
 		-dGrayImageResolution=150					\
 		-dMonoImageDownsampleType=/Bicubic				\
 		-dMonoImageResolution=150					\
-		-dPrinted=false						\
+		-dPrinted=false							\
 		-sOutputFile="$2"						\
 		"$1"
 }
@@ -63,8 +63,8 @@ compress()
 register_key()
 {
 	[ ! -d "$LIB_PATH" ] && mkdir -p "$LIBPATH"
-	printf "To proceed, you'll need an account on ilovepdf...\\n"
-	read -p "Enter your project public ID: " pubkey
+	printf "You'll need an account on ilovepdf...\\nEnter your project key: " 
+	read -r pubkey
 	printf "%s" "$pubkey" > "$PUBKEY"
 }
 
