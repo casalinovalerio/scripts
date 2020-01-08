@@ -1,6 +1,28 @@
 #!/usr/bin/env sh
 
-error() { printf "E: $1\\n"; exit 1; }
+################################################################################
+# Script name	: cpu-profile.sh 
+# Author	: Valerio Casalino
+# Description	: Use this script to tweak the power consuption of your laptop
+################################################################################
+
+SCRIPT_PATH=$( readlink -f $0 )
+SCRIPT_NAME=$( printf "%s" "$SCRIPT_PATH" | xargs basename )
+RED="\033[31m"
+NCL="\033[0m"
+
+
+error() 
+{ 
+	printf "${RED}E: %s${NCL}\\n" "$1" >&2
+	exit 1
+}
+
+
+
+
+
+
 
 command -v cpufreqctl || error "Install cpufreqctl"
 driver=$( cpufreqctl --driver )
