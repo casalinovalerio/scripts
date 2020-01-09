@@ -104,7 +104,7 @@ enable_powertop()
 {
 	sudo powertop --auto-tune > /dev/null
 	[ "$1" = "full" ] && return 0
-	for i in $( ls /sys/bus/usb/devices/ )
+	for i in /sys/bus/usb/devices/*
 	do
 		echo "on" 							\
 			| sudo tee "/sys/bus/usb/devices/$i/power/control"	\
@@ -166,8 +166,6 @@ while getopts "hyf:c:g:p:" opt; do
 			;;
 	esac
 done
-
-PWRTOP="nousb"
 
 # Print out the driver
 DRIVER=$( cpufreqctl --driver )
