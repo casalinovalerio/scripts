@@ -12,7 +12,7 @@ RED="\033[31m"
 NCL="\033[0m"
 
 # Check if cpufrequctl is installed
-command -v cpufreqctl || error "You'll need cpufreqctl"
+command -v cpufreqctl > /dev/null || error "You'll need cpufreqctl"
 
 # Available governors
 CON="conservative"
@@ -63,7 +63,8 @@ confirm()
 	printf "Governor: $GOV\\nFrequency: $FRQ\\nCores: $CRS\\n"
 	printf "Is it correct? [y/N]: "
 	read -r yn
-	[ $yn != 'y' ] && [ $yn != 'Y' ] && return 1
+	[ "$yn" != "y" ] && [ "$yn" != "Y" ] && return 1
+	return 0
 }
 
 choose_governor()
@@ -77,7 +78,7 @@ choose_governor()
 		4) gov="$OND";;
 		*) return 1  ;;
 	esac
-	printf "%s" "$gov"
+	GOV="$gov"
 }
 
 choose_frequency()
@@ -87,7 +88,7 @@ choose_frequency()
 	read -r choice || return 1
 	[ "$choice" -le 0 ] && return 1
 	freq=$( printf "%s" "$AVAIL_FRQ" | tail -n "$choice" | head -n 1 )
-	printf "%s" "$freq"
+	FRQ="$freq"
 }
 
 choose_cores()
@@ -95,20 +96,20 @@ choose_cores()
 	printf "Choose core number [max $MAX_CORES]:\\n"
 	read -r choice
 	{ [ "$choice" -lt 1 ] || [ "$choice" -gt "$MAX_CORES" ]; } && return 1
-	printf "%s" "$choice"
+	CRS="$choice"
 }
 
 # args: mode
 enable_powertop()
 {
-	sudo powertop --auto-tune
+	sudo powertop --auto-tune > /dev/null
 	[ "$1" = "full" ] && return 0
-	sudo -s <<HERETO
 	for i in $( ls /sys/bus/usb/devices/ )
 	do
-		echo "on" > "/sys/bus/usb/devices/$i/power/control"
+		echo "on" 							\
+			| sudo tee "/sys/bus/usb/devices/$i/power/control"	\
+			> /dev/null 2>&1
 	done
-HERETO
 }
 
 
@@ -148,7 +149,8 @@ while getopts "hyf:c:g:p:" opt; do
 			CRS="$OPTARG"
 			;;
 		p)
-			command -v powertop || error "You need powertop."
+			command -v powertop > /dev/null 			\
+				|| error "You need powertop."
 			
 			[ -n "$PWRTOP" ] && error "Too many powertop opt"
 
@@ -165,29 +167,31 @@ while getopts "hyf:c:g:p:" opt; do
 	esac
 done
 
+PWRTOP="nousb"
+
 # Print out the driver
 DRIVER=$( cpufreqctl --driver )
 printf "Using '$DRIVER' driver\\n"
 
 # Get choices if not already defined
-[ -z "$GOV" ] && GOV=$( choose_governor || error "Failed to get governor" )
-[ -z "$FRQ" ] && FRQ=$( choose_frequency || error "Failed to get frequency" )
-[ -z "$CRS" ] && CRS=$( choose_cores || error "Failed to get cores" )
+[ -z "$GOV" ] && { choose_governor || error "Failed to get governor"; }
+[ -z "$FRQ" ] && { choose_frequency || error "Failed to get frequency"; }
+[ -z "$CRS" ] && { choose_cores || error "Failed to get cores"; }
 
 # Get confirmation
-[ -z "$YES" ] && confirmation "$GOV" "$FRQ" "$CRS" || error "Abort."
+[ -z "$YES" ] && { confirm "$GOV" "$FRQ" "$CRS" || error "Abort."; }
 
 
 printf "Applying changes...\\n"
 # Governor and frequency
-sudo cpufreqctl --governor --set=$GOV
-sudo cpufreqctl --frequency-max --set=$FRQ
+sudo cpufreqctl --governor --set="$GOV" > /dev/null
+sudo cpufreqctl --frequency-max --set="$FRQ" > /dev/null
 
 # Manage cores
 MAX_CORES=$(( MAX_CORES-1 ))
-for i in $( seq $CRS $MAX_CORES ); do sudo cpufreqctl --off --core=$i; done
+for i in $( seq "$CRS" "$MAX_CORES" ); do sudo cpufreqctl --off --core="$i"; done
 CRS=$(( CRS-1 ))
-for i in $( seq 0 $CRS ); do sudo cpufreqctl --on --core=$i; done
+for i in $( seq 1 "$CRS" ); do sudo cpufreqctl --on --core="$i"; done
 
 # Powertop
 [ -n "$PWRTOP" ] && enable_powertop "$PWRTOP"
