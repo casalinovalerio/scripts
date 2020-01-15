@@ -102,14 +102,16 @@ choose_cores()
 # args: mode
 enable_powertop()
 {
-	sudo powertop --auto-tune > /dev/null
+	sudo powertop --auto-tune > /dev/null || error "Error in autotune"
 	[ "$1" = "full" ] && return 0
 	for i in /sys/bus/usb/devices/*
 	do
-		echo "on" 							\
-			| sudo tee "/sys/bus/usb/devices/$i/power/control"	\
-			> /dev/null 2>&1
+		local target="/sys/bus/usb/devices/$i/power/control"
+		[ -f "$target" ] && [ -w "$target" ] && { printf "on\\n"	\
+			| sudo tee "$target" > /dev/null 			\
+			|| error "E in 'on' for $target"; }
 	done
+	return 0
 }
 
 
@@ -182,14 +184,21 @@ printf "Using '$DRIVER' driver\\n"
 
 printf "Applying changes...\\n"
 # Governor and frequency
-sudo cpufreqctl --governor --set="$GOV" > /dev/null
-sudo cpufreqctl --frequency-max --set="$FRQ" > /dev/null
+sudo cpufreqctl --governor --set="$GOV" > /dev/null 2>&1			\
+	|| error "Failed to set governor"
+sudo cpufreqctl --frequency-max --set="$FRQ" > /dev/null 2>&1			\
+	|| error "Failed to set frequency"
 
 # Manage cores
 MAX_CORES=$(( MAX_CORES-1 ))
-for i in $( seq "$CRS" "$MAX_CORES" ); do sudo cpufreqctl --off --core="$i"; done
+for i in $( seq "$CRS" "$MAX_CORES" ); do 
+	sudo cpufreqctl --off --core="$i" || error "Error turning off core $i"
+done
 CRS=$(( CRS-1 ))
-for i in $( seq 1 "$CRS" ); do sudo cpufreqctl --on --core="$i"; done
+for i in $( seq 1 "$CRS" ); do 
+	sudo cpufreqctl --on --core="$i" || error "Error turning on core $i"
+done
 
 # Powertop
-[ -n "$PWRTOP" ] && enable_powertop "$PWRTOP"
+[ -n "$PWRTOP" ] && enable_powertop "$PWRTOP" > /dev/null 2>&1 			\
+	|| error "Error in powertop" 
