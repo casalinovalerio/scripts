@@ -126,7 +126,7 @@ while getopts "hyf:c:g:p:" opt; do
 			;;
 		f)
 			[ -n "$FRQ" ] && error "Too many frequencies"
-			printf "%s" "$AVAIL_FRQ" | grep "$OPTARG" 		\
+			printf "%s" "$AVAIL_FRQ" | grep "$OPTARG" > /dev/null	\
 				|| error "Freq $OPTARG not available."
 			FRQ="$OPTARG"
 			;;
