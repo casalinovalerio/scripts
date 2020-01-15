@@ -106,7 +106,7 @@ enable_powertop()
 	[ "$1" = "full" ] && return 0
 	for i in /sys/bus/usb/devices/*
 	do
-		local target="/sys/bus/usb/devices/$i/power/control"
+		target="/sys/bus/usb/devices/$i/power/control"
 		[ -f "$target" ] && [ -w "$target" ] && { printf "on\\n"	\
 			| sudo tee "$target" > /dev/null 			\
 			|| error "E in 'on' for $target"; }
