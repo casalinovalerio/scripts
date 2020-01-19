@@ -9,11 +9,11 @@ error() { printf "%s\\n" "$1"; exit 1; }
 
 usage() 
 {
-  cat <<-EOF
-  Usage: $( basename $0 ) http://example.com
+	cat <<-EOF
+	Usage: $( basename $0 ) http://example.com
   
-  It will return a short link using tinyurl.com service
-  EOF  
+	It will return a short link using tinyurl.com service
+	EOF  
 }
 	
 [ $# -eq 1 ] || { usage; exit 0;  }
