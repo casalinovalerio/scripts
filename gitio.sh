@@ -19,7 +19,7 @@ usage() {
 [ $# -ne 1 ] && error "You need 1 input (Github) url"
 
 out=$( curl -is https://git.io \
-	-F "url=$url" \
+	-F "url=$1" \
 | grep "Location:" \
 | cut -d' ' -f2 \
 || error "No internet connection" ) 
