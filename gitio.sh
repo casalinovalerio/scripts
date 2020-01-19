@@ -38,15 +38,18 @@ while getopts "hc:" opt; do
 done
 
 [ -z "$cust" ] && { \
-	curl -is https://git.io \
+	out=$( curl -is https://git.io \
 		-F "url=$url" \
 	| grep "Location:" \
 	| cut -d' ' -f2 \
-	|| error "Invalid Github url or no internet connection"; }
+	|| error "No internet connection" ); }
 [ -n "$cust" ] && { \
-	curl -is https://git.io \
+	out=$( curl -is https://git.io \
                 -F "url=$url" \
-		-F "code=$cust"
+		-F "code=$cust" \
         | grep "Location:" \
         | cut -d' ' -f2 \
-        || error "Invalid Github url or no internet connection"; }
+	|| error "No internet connection" ); }
+
+[ -z "$out" ] && error "Invalid Github url"
+printf "%s\\n" "$out" 
