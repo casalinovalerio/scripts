@@ -13,7 +13,7 @@ usage()
 	Usage: $( basename $0 ) http://example.com
   
 	It will return a short link using tinyurl.com service
-	EOF  
+	EOF
 }
 	
 [ $# -eq 1 ] || { usage; exit 0;  }
