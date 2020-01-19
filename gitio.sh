@@ -10,46 +10,19 @@ error() { printf "%s\\n" "$1"; exit 1; }
 
 usage() {
 	cat <<-EOF
-	Usage: $( basename $0 ) https://github.com/<anything> -c <args>
+	Usage: $( basename $0 ) https://github.com/<anything>
 	
-	-h	:print this helpful usage
-
-	-c	:custom string after the slash
-
 	Outputs https://git.io/<some-short-string>
 	EOF
 }
 
-while getopts "hc:" opt; do
-	case $opt in
-		h)
-			usage
-			exit 0
-			;;
-		c)
-			[ -n "$cust" ] && error "Custom string already defined"
-			cust="$OPTARG"
-			;;
-		*)
-			[ -n "$url" ] && error "Unexpected input"
-			url="$OPTARG"
-			;;
-	esac
-done
+[ $# -ne 1 ] && error "You need 1 input (Github) url"
 
-[ -z "$cust" ] && { \
-	out=$( curl -is https://git.io \
-		-F "url=$url" \
-	| grep "Location:" \
-	| cut -d' ' -f2 \
-	|| error "No internet connection" ); }
-[ -n "$cust" ] && { \
-	out=$( curl -is https://git.io \
-                -F "url=$url" \
-		-F "code=$cust" \
-        | grep "Location:" \
-        | cut -d' ' -f2 \
-	|| error "No internet connection" ); }
+out=$( curl -is https://git.io \
+	-F "url=$url" \
+| grep "Location:" \
+| cut -d' ' -f2 \
+|| error "No internet connection" ) 
 
 [ -z "$out" ] && error "Invalid Github url"
 printf "%s\\n" "$out" 
