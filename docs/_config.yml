@@ -1,5 +1,5 @@
 theme: jekyll-theme-minimal
 title: Scripts
 description: Collection of POSIX sh compliant Linux scripts. Distro independent 😉
-logo: /scripts/assets/logo/avatar.webp
+logo: /assets/logo/avatar.webp
 show_downloads: true
