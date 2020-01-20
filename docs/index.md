@@ -33,3 +33,10 @@ layout: default
 **[round-image-cropper.sh](https://github.com/casalinovalerio/scripts/blob/actual-scripts/round-image-cropper.sh)** is pretty self explanatory…
 
 ![round-image-cropper.webp](/assets/images/round-image-cropper.webp)
+
+### optimize-boot.sh
+
+**[optimize-boot.sh](https://github.com/casalinovalerio/scripts/blob/actual-scripts/optimize-boot.sh)** is a simple utility that increases boot time. It is not completed yet, but I’m working on it. In the gif below there are the benefits for my system.
+
+![optimize-boot.gif](/assets/gifs/optimize-boot.gif)
+
