@@ -40,3 +40,8 @@ layout: default
 
 ![optimize-boot.gif](/assets/gifs/optimize-boot.gif)
 
+### pdf-compress.sh
+
+**[pdf-compress.sh](https://github.com/casalinovalerio/scripts/blob/actual-scripts/pdf-compress.sh)** is a simple Gostscript wrapper to compress a pdf offline. Works pretty fine.
+
+![round-image-cropper.webp](/assets/images/pdf-compress.webp)
