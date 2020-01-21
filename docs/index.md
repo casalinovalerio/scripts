@@ -42,6 +42,14 @@ layout: default
 
 ### pdf-compress.sh
 
-**[pdf-compress.sh](https://github.com/casalinovalerio/scripts/blob/actual-scripts/pdf-compress.sh)** is a simple Gostscript wrapper to compress a pdf offline. Works pretty fine :sunglasses: :page_facing_up:. 
+**[pdf-compress.sh](https://github.com/casalinovalerio/scripts/blob/actual-scripts/pdf-compress.sh)** is a simple Ghostscript wrapper to compress a pdf offline. Works pretty fine :sunglasses: :page_facing_up:. 
 
 ![round-image-cropper.webp](/assets/images/pdf-compress.webp)
+
+### wallpaper-download.sh
+
+**[wallpaper-download.sh](https://github.com/casalinovalerio/scripts/blob/actual-scripts/wallpaper-download.sh)** is a script that gets the [Nasa's APOD](https://apod.nasa.gov/apod/astropix.html) :earth_americas: and the [BING's daily wallpaper](https://www.bing.com/) :mag: putting them in the `~/Pictures` folder.
+
+### youtube-download.sh
+
+**[youtube-download.sh](https://github.com/casalinovalerio/scripts/blob/actual-scripts/youtube-download.sh)** is a mini-wrapper to download the best possible format of a yt video with metadata and basic stuff.
