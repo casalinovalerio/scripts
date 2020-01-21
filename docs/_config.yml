@@ -1,8 +1,10 @@
 theme: jekyll-theme-minimal
 title: Scripts
-description: Collection of POSIX sh compliant Linux scripts. Distro independent 😉
+description: Collection of POSIX sh compliant Linux scripts. Distro independent :wink:
 logo: /assets/logo/avatar.webp
 show_downloads: true
 github:
         zip_url: https://github.com/casalinovalerio/scripts/zipball/actual-scripts
         tar_url: https://github.com/casalinovalerio/scripts/tarball/actual-scripts
+plugins:
+        - jemoji
