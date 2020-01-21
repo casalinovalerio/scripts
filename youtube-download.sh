@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env sh
 ### Author      : Valerio Casalino
 ### Licence     : GPLv3
 ### Description : A simple script to download yt videos

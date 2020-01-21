@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env sh
+
+# Author: valerio Casalino
 # This script downloads the NASA APOD: https://apod.nasa.gov/apod/astropix.html
 # And the BING image of the day: https://www.bing.com/
 
