@@ -200,5 +200,5 @@ for i in $( seq 1 "$CRS" ); do
 done
 
 # Powertop
-[ -n "$PWRTOP" ] && enable_powertop "$PWRTOP" > /dev/null 2>&1 			\
-	|| error "Error in powertop" 
+[ -n "$PWRTOP" ] && { enable_powertop "$PWRTOP" > /dev/null 2>&1 			\
+	|| error "Error in powertop"; } 
