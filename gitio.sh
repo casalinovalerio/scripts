@@ -18,29 +18,29 @@ usage() {
 
 [ $# -lt 1 ] && error "You need 1 input (Github) url"
 
-for arg in $@; do
-	case $arg in
+while (( $# )); do
+	case $1 in
 		-c)
 			[ -n "$code" ] && error "code already defined"
 			shift
 			code="$1"
-			shift
+			[ "$#" -eq 0 ] || shift
 			;;
 		*)
 			[ -n "$url" ] && error "Url already defined"
 			url="$1"
-			shift
+			[ "$#" -eq 0 ] || shift
 			;;
 	esac
 done
 
 [ -z "$code" ] && \
-	out=$( curl -is https://git.io -F "url=$1" \
+	out=$( curl -is https://git.io -F "url=$url" \
 		| grep "Location:" \
 		| cut -d' ' -f2 \
 		|| error "No internet connection" )
 [ -n "$code" ] && \
-	out=$( curl -is https://git.io -F "url=$1" -F "code=$code" \
+	out=$( curl -is https://git.io -F "url=$url" -F "code=$code" \
 		| grep "Location:" \
 		| cut -d' ' -f2 \
 		|| error "No internet connection" )
