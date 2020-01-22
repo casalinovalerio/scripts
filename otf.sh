@@ -31,19 +31,20 @@ name=$( get_value "File Name" "$response" )
 cont=$( get_value "Content Type" "$response" )
 sha2=$( get_value "sha256" "$response" )
 ip25=$( get_value "ip256" "$response" )
-link=$( get_value "link" "$response" )
-brow=$( get_value "download_page" "$response" )
+link=$( get_value "link" "$response" | tr -d " " )
+brow=$( get_value "download_page" "$response" | tr -d " " )
 
 cat <<HERETO
------------------------------------------------------------
-Direct download: $link
------------------------------------------------------------
-SIZE>_		$size
-FILE NAME>_	$name
-CONTENT TYPE>_	$cont
-SHA256>_	$sha2
-IP256>_		$ip25
------------------------------------------------------------
-To download the file from a webpage:
+-------------------------------------------------------------------------------
+Direct download: 
+$link
+-------------------------------------------------------------------------------
+SIZE>_      $size
+FILE NAME>_ $name
+CONTENT>_   $cont
+SHA256>_    $sha2
+IP256>_	    $ip25
+-------------------------------------------------------------------------------
+To download the file from a webpage in the browser:
 $brow
 HERETO
