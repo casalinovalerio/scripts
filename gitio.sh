@@ -16,7 +16,7 @@ usage() {
 	EOF
 }
 
-[ $# -ne 1 ] && error "You need 1 input (Github) url"
+[ $# -lt 1 ] && error "You need 1 input (Github) url"
 
 for arg in $@; do
 	case $arg in
