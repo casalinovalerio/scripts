@@ -18,7 +18,7 @@ usage() {
 
 [ $# -lt 1 ] && error "You need 1 input (Github) url"
 
-while (( $# )); do
+while [ "$#" -ne 0 ]; do
 	case $1 in
 		-c)
 			[ -n "$code" ] && error "code already defined"
