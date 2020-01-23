@@ -1,0 +1,72 @@
+#!/usr/bin/env sh
+
+################################################################################
+# Author        : Valerio Casalino
+# Description	: Mini-wrapper for newsapi.org
+################################################################################
+
+KEY_PATH="$( readlink -f "$0" | xargs dirname )/keys/newsapi-key"
+
+error() { printf "\033[31m%s\033[0m\\n" "$1"; exit 1; }
+
+usage()
+{
+  cat <<-HERETO
+  $( readlink $0 ) [opts] <args>
+
+  -h, --help     : display usage
+  -k, --key      : insert key
+  -c, --country  : set country (us,it,de...)
+	HERETO
+}
+
+# Get apikey in variable key
+[ -f "$KEY_PATH" ] && . "$KEY_PATH"
+
+while [ "$1" != "" ]; do
+  case "$1" in
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    -c|--country)
+      shift
+      country="$1"
+      ;;
+    -k|--key)
+      shift
+      key="$1"
+      ;;
+    *)
+      error "Wrong parameter"
+      ;;
+  esac
+  shift
+done
+
+[ -z "$country" ] && country="it"
+[ -z "$key" ] && { key=$( get_key ) || error "Unable to get key"; }
+command -v jq > /dev/null || error "This script's using jq"
+
+# Capture response
+json=$( curl -s "https://newsapi.org/v2/top-headlines?country=$country&apiKey=$key" )
+
+#[ $( printf "%s" "$json" | jq '.status' ) = "ok" ] || error "API server response not ok"
+
+nart=$( printf "%s" "$json" | jq '.totalResults' )
+nart=$(( nart-1 ))
+
+for i in $( seq 0 "$nart" ); do
+	titl=$( printf "%s" "$json" | jq ".articles[$i].title" )
+	aurl=$( printf "%s" "$json" | jq ".articles[$i].url" )
+	desc=$( printf "%s" "$json" | jq ".articles[$i].description" )
+	iurl=$( printf "%s" "$json" | jq ".articles[$i].urlToImage" )
+	auth=$( printf "%s" "$json" | jq ".articles[$i].author" )
+	asrc=$( printf "%s" "$json" | jq ".articles[$i].source.name" )
+	cont=$( printf "%s" "$json" | jq ".articles[$i].content" )
+	[ "$cont" = "null" ] && [ "$titl" = "null" ] && exit 0
+	printf "\e[0;36m%*s\e[m\\n" "${COLUMNS:-$(tput cols)}" '' | tr ' ' \#
+	printf "Title: %s\\nAuthor: %s\\nLink: %s\\n" "$titl" "$auth" "$aurl"
+	printf "Description: %s\\nContent: %s\\nSource: %s\\n" "$desc" "$cont" "$asrc"
+	printf "\e[0;36m%*s\e[m\\n" "${COLUMNS:-$(tput cols)}" '' | tr ' ' \#
+done
