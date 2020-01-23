@@ -33,5 +33,5 @@ author=$( url_encode "$1" || error "You need Python and urllib" )
 songtt=$( url_encode "$2" || error "You need Python and urllib" )
 
 curl -s "https://api.lyrics.ovh/v1/$author/$songtt" \
-	| sed "s/{lyrics://g;s/}//g" \
-	| xargs printf
+	| xargs printf \
+	| sed "s/{lyrics://g;s/}//g"
