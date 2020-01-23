@@ -183,14 +183,17 @@ printf "Using '$DRIVER' driver\\n"
 
 
 printf "Applying changes...\\n"
-# Governor and frequency
+
+printf "Changing the Governor to: %s...\\n" "$GOV"
 sudo cpufreqctl --governor --set="$GOV" > /dev/null 2>&1			\
 	|| error "Failed to set governor"
+
+printf "Changing max Frequency to: %s\\n" "$FRQ"
 sudo cpufreqctl --frequency-max --set="$FRQ" > /dev/null 2>&1			\
 	|| error "Failed to set frequency"
 
-# Manage cores
 MAX_CORES=$(( MAX_CORES-1 ))
+printf "Setting up %s cores\\n" "$CRS"
 for i in $( seq "$CRS" "$MAX_CORES" ); do 
 	sudo cpufreqctl --off --core="$i" || error "Error turning off core $i"
 done
@@ -199,6 +202,6 @@ for i in $( seq 1 "$CRS" ); do
 	sudo cpufreqctl --on --core="$i" || error "Error turning on core $i"
 done
 
-# Powertop
-[ -n "$PWRTOP" ] && { enable_powertop "$PWRTOP" > /dev/null 2>&1 			\
+[ -n "$PWRTOP" ] && { printf "Entering powertop\\n"; 				\
+       	enable_powertop "$PWRTOP" > /dev/null 2>&1 				\
 	|| error "Error in powertop"; } 
