@@ -2,6 +2,8 @@
 layout: default
 ---
 
+<link rel="shortcut icon" href="assets/favicon.ico" />
+
 ## My work-flow helpers
 
 ### cpu-profile.sh
