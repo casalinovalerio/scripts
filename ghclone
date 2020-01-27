@@ -59,6 +59,9 @@ while [ "$1" != "" ]; do
 	shift
 done
 
+[ -z "$user" ] && error "No user specified"
+[ -z "$http" ] && [ -z "$ssh" ] && error "No method specified"
+
 list=$( curl -s "https://api.github.com/users/$user/repos" | grep "clone_url\|description" | tr -d "," 	| nl )
 
 n=$( printf "%s" "$list" | wc -l )
@@ -66,6 +69,8 @@ newline=$( printf "\\n" )
 i=1
 k=0
 collection=""
+
+[ "$n" -eq 0 ] && error "User has no repos"
 
 printf "%*s\\n" "40" | tr " " "="
 while [ "$i" -le "$n" ]; do
