@@ -79,7 +79,7 @@ while [ "$i" -le "$n" ]; do
 	i=$(( i+1 ))
 	name=$( printf "%s" "$list" | sed -n "${i}p" | cut -d "\"" -f 4- | cut -d "/" -f 5 | cut -d "." -f 1 )
 	i=$(( i+1 ))
-	collection="$collection\n$k~$name~$desc"
+	collection=$( printf "%s\\n%s~%s~%s" "$collection" "$k" "$name" "$desc" )
 	printf "\e[0;31m%-2s - \e[0;32m%s\e[m: %s %s\\n" "$k" "$name" "$desc"
 done
 printf "%*s\\n" "40" | tr " " "="
@@ -88,6 +88,8 @@ printf "Choose the repo: "
 read -r choice
 { [ "$choice" -lt 1 ] || [ "$choice" -gt "$k" ]; } && error "Number not in range"
 
-repo=$( printf "%s" "$collection" | grep "$choice" | cut -d "~" -f 2 )
+printf "%s" "$collection"; read -r l
+
+repo=$( printf "%s" "$collection" | grep "^$choice" | cut -d "~" -f 2 )
 [ -n "$ssh" ] && git clone "git@github.com:$user/$repo.git"
 [ -n "$http" ] && git clone "https://github.com/$user/$repo.git"
