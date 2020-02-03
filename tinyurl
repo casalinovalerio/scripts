@@ -18,4 +18,5 @@ usage()
 	
 [ $# -eq 1 ] || { usage; exit 0;  }
 
-curl "https://tinyurl.com/api-create.php?url=$1" || error "Something is wrong" 
+curl "https://tinyurl.com/api-create.php?url=$1" || error "Something is wrong"
+printf "\\n"
