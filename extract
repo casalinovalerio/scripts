@@ -5,12 +5,13 @@
 
 # Checks
 [ -z "$1" ] && echo "Usage: extract <file>.<tar.gz|zip>" && exit 0
-[ ! -f "$1" ] && echo "File doesn't exist!" && exit 1
+[ -f "$1" ] || { echo "File doesn't exist!" && exit 1; }
 
-mime=$( file -i "$i" | cut -d ":" -f 2 | cut -d "/" -f 2 | cut -d ";" -f 1 )
+mime=$( file --mime-type -b "$1" )
 
-case "$mime" in
+case "${mime#application/}" in
   "gzip") tar xvzf $1  ;;
-  "zip")  unzip $i     ;;
-  *) printf "Not yet supported %s" "$i" ;;
+  "zip")  unzip $1     ;;
+  *) printf "Not yet supported %s\\n" "$i" ;;
 esac
+
