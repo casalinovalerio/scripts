@@ -36,21 +36,21 @@ usage()
 
 compress()
 {
-	gs									\
-		-q -dNOPAUSE -dBATCH -dSAFER					\
-		-sDEVICE=pdfwrite						\
-		-dCompatibilityLevel=1.5					\
-		-dSimulateOverprint=true					\
-		-dPDFSETTINGS=/"$3"						\
-		-dEmbedAllFonts=true						\
-		-dSubsetFonts=true						\
-		-dColorImageDownsampleType=/Bicubic				\
-		-dColorImageResolution=150					\
-		-dGrayImageDownsampleType=/Bicubic				\
-		-dGrayImageResolution=150					\
-		-dMonoImageDownsampleType=/Bicubic				\
-		-dMonoImageResolution=150					\
-		-sOutputFile="$2"						\
+	gs                                       \
+		-q -dNOPAUSE -dBATCH -dSAFER         \
+		-sDEVICE=pdfwrite                    \
+		-dCompatibilityLevel=1.5             \
+		-dSimulateOverprint=true             \
+		-dPDFSETTINGS=/"$3"                  \
+		-dEmbedAllFonts=true                 \
+		-dSubsetFonts=true                   \
+		-dColorImageDownsampleType=/Bicubic  \
+		-dColorImageResolution=150           \
+		-dGrayImageDownsampleType=/Subsample \
+		-dGrayImageResolution=150            \
+		-dMonoImageDownsampleType=/Bicubic   \
+		-dMonoImageResolution=150            \
+		-sOutputFile="$2"                    \
 		"$1"
 }
 
@@ -59,9 +59,9 @@ command -v gs > /dev/null || error "You need gs to run this script"
 while getopts "hi:m:o:" opt; do
 	case $opt in
 		m)
-			[ "$OPTARG" = "low" ] && mode="screen"
+			[ "$OPTARG" = "low" ]    && mode="screen"
 			[ "$OPTARG" = "medium" ] && mode="ebook"
-			[ "$OPTARG" = "high" ] && mode="printer"
+			[ "$OPTARG" = "high" ]   && mode="printer"
 			[ -z "$mode" ] && error "$OPTARG is not accepted"
 			;;
 		i)
@@ -86,7 +86,7 @@ while getopts "hi:m:o:" opt; do
 done
 
 [ -z "$inFile" ] && error "You need at least the input file..."
-[ -z "$outFile" ] && outFile="$inFile.compressed"
+[ -z "$outFile" ] && outFile="${inFile%.pdf}-compressed.pdf"
 [ -z "$mode" ] && mode="ebook"
 
 compress "$inFile" "$outFile" "$mode"
