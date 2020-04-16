@@ -1,0 +1,38 @@
+#!/usr/bin/env sh
+
+usage() {
+  printf "md2pdf [OPTIONS] <input-file.md>\\n"
+  printf "OPTIONS:\\n-o <output-file.md>\\n-c <css-file>\\n-h to get help\\n"
+}
+
+while [ $# -ne 0 ]; do case $1 in
+  -o) 
+    shift
+    [ -z "$OUTFILE" ] && OUTFILE="$1" || { printf "Outfile already defined\\n"; exit 1; } 
+    shift
+    ;;
+  -c)
+    shift
+    [ -z "$CSSFILE" ] && CSSFILE="$1" || { printf "CSSfile already defined\\n"; exit 1; }
+    shift
+    ;;
+  -h)
+    usage
+    exit 0
+    ;;
+  *)
+    [ -z "$INFILE" ] && INFILE="$1" || { printf "Input already defined\\n"; exit 1; }
+    shift
+    ;;
+esac done
+
+[ -z "$INFILE" ]  && { printf "Input file not defined"; exit 1; }
+[ -f "$INFILE" ]  || { printf "Input file is not a regular file"; exit 1; }
+[ -z "$OUTFILE" ] && OUTFILE="${INFILE%.md}.pdf"
+[ -n "$CSSFILE" ] && CMD="--css $CSSFILE" || CMD=""
+tempfile=$( mktemp )
+
+pandoc "$INFILE" -f gfm -t html --output "$tempfile"
+pandoc "$tempfile" -f html -t pdf $CMD --pdf-engine=wkhtmltopdf --output "$OUTFILE"
+
+rm "$tempfile"
