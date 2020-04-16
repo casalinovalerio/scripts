@@ -1,0 +1,17 @@
+#!/usr/bin/env sh
+###
+### Extracts whatever archive
+###
+
+# Checks
+[ -z "$1" ] && echo "Usage: extract <file>.<tar.gz|zip>" && exit 0
+[ -f "$1" ] || { echo "File doesn't exist!" && exit 1; }
+
+mime=$( file --mime-type -b "$1" )
+
+case "${mime#application/}" in
+  "gzip") tar xvzf $1  ;;
+  "zip")  unzip $1     ;;
+  *) printf "Not yet supported %s\\n" "$i" ;;
+esac
+

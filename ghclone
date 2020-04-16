@@ -1,0 +1,95 @@
+#!/usr/bin/env sh
+
+###############################################################################
+# Author	: Valerio Casalino
+# Description	: Clone from github with no pain 😎
+###############################################################################
+
+error() { printf "\033[31m%s\033[0m\\n" "$1"; exit 1; }
+
+usage(){ 
+	cat <<-HERETO
+	Usage: $( basename $0 ) [-h] [-t|-s] -u <username>
+
+	-h|--help	Print usage
+	-t|--http	Clone with hhtps
+	-s|--ssh	Clone with ssh
+	-u|--username	Supply username
+	HERETO
+}
+
+check()
+{
+	command -v curl > /dev/null || error "You'll need curl."
+	command -v git > /dev/null || error "You'll need git."
+}
+
+add_lines()
+{
+	printf "%s" "$1" | nl
+}
+
+
+
+while [ "$1" != "" ]; do
+	case "$1" in
+		-h|--help)
+			usage
+			exit 0
+			;;
+		-t|--http)
+			{ [ -n "$http" ] || [ -n "$ssh" ]; } \
+				&& error "Error in protocol"
+			http="true"
+			;;
+		-s|--ssh)
+			{ [ -n "$http" ] || [ -n "$ssh" ]; } \
+				&& error "Error in protocol"
+			ssh="true"
+			;;
+		-u|--username)
+			[ -n "$user" ] && error "Username already defined"
+			shift
+			user="$1"
+			;;
+		*)
+			error "Unknown parameter $1"
+			;;
+	esac
+	shift
+done
+
+[ -z "$user" ] && error "No user specified"
+[ -z "$http" ] && [ -z "$ssh" ] && error "No method specified"
+
+list=$( curl -s "https://api.github.com/users/$user/repos" | grep "clone_url\|description" | tr -d "," 	| nl )
+
+n=$( printf "%s" "$list" | wc -l )
+newline=$( printf "\\n" )
+i=1
+k=0
+collection=""
+
+[ "$n" -eq 0 ] && error "User has no repos"
+
+printf "%*s\\n" "40" | tr " " "="
+while [ "$i" -le "$n" ]; do
+	k=$(( k+1 ))
+	desc=$( printf "%s" "$list" | sed -n "${i}p" | cut -d "\"" -f 4- | tr -d "\"" )
+	i=$(( i+1 ))
+	name=$( printf "%s" "$list" | sed -n "${i}p" | cut -d "\"" -f 4- | cut -d "/" -f 5 | cut -d "." -f 1 )
+	i=$(( i+1 ))
+	collection=$( printf "%s\\n%s~%s~%s" "$collection" "$k" "$name" "$desc" )
+	printf "\e[0;31m%-2s - \e[0;32m%s\e[m: %s %s\\n" "$k" "$name" "$desc"
+done
+printf "%*s\\n" "40" | tr " " "="
+
+printf "Choose the repo: "
+read -r choice
+{ [ "$choice" -lt 1 ] || [ "$choice" -gt "$k" ]; } && error "Number not in range"
+
+printf "%s" "$collection"; read -r l
+
+repo=$( printf "%s" "$collection" | grep "^$choice" | cut -d "~" -f 2 )
+[ -n "$ssh" ] && git clone "git@github.com:$user/$repo.git"
+[ -n "$http" ] && git clone "https://github.com/$user/$repo.git"
