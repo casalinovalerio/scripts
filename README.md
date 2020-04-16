@@ -7,11 +7,8 @@ This is my collection of scripts to fit my work flows, they are all POSIX sh com
 
 ## Use this repository
 
-Just clone this repository and checkout the actual-scripts branch:
+Just clone this repository and use this scripts:
 
 ```bash
 git clone https://github.com/casalinovalerio/scripts.git
-cd scripts
-git checkout actual-scripts
 ```
-
