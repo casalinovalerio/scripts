@@ -4,31 +4,57 @@
 # This script downloads the NASA APOD: https://apod.nasa.gov/apod/astropix.html
 # And the BING image of the day: https://www.bing.com/
 
-dwnDir="$HOME/Pictures"
-tmpFile=$( mktemp )
+SCRIPT="wallpaper-download"
+DEFAULT_OUT="$HOME"
+TEMP=$( mktemp )
 
-# Bing Image of the day: https://stackoverflow.com/a/18096210
-curl "https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&mkt=it-IT" \
-	| sed "s/,/\n/g" \
-	| grep "\"url\"" \
-	| cut -d ":" -f 2 \
-	| xargs echo "https://bing.com"$1 \
-	| sed "s/ //g" \
-	| xargs curl $1 -o $dwnDir/"$(date --rfc-3339='date')-bing.jpg"
-	
-	
-# NASA APOD: https://api.nasa.gov/api.html#apod
-url=$(curl "https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY" \
-	| sed "s/,/\n/g;s/\"//g;s/}//g;s/{//g" \
-	| grep "hdurl\|title" \
-	| tee $tmpFile \
-	| grep hdurl \
-	| cut -d ":" -f 2-)
+# Checks
+error() { printf "%s\\n" "$1"; rm "$TEMP"; exit 1; }
+command -v curl > /dev/null || error "You need curl"
+command -v jq > /dev/null || error "You need jq"
 
-title="$( grep title $tmpFile | cut -d ":" -f 2- | sed "s/ /-/g").jpg"
+usage() {
+  printf "Usage:\\n%s [-b|--bing:-n|--nasa:-h|--help] (optional)<output-dir>\\n" "$SCRIPT" 
+}
 
-curl $url -o "$dwnDir/$title"
+bing() {
+  curl -s "https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&mkt=it-IT" -o "$TEMP"
+  tmpvar=$( cat $TEMP | jq --raw-output '.title' | tr " " "-" )
+  [ "$tmpvar" = "null" ] && tmpvar=$( date -I )
+  title="${tmpvar}-bing.jpg"
+  cat "$TEMP" | jq '.images[0].url' | xargs -I '{}' curl "https://bing.com{}" -o "$1/$title"
+}
 
-# Sometimes NASA put a video, in that case it won't be downloaded
+nasa() {
+  curl -s "https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY" -o "$TEMP"
+  [ $( cat $TEMP | jq --raw-output '.media_type' ) = "video" ] && error "No picture today"
+  title="$( cat $TEMP | jq --raw-output '.title' | tr " " "-" )-nasa.jpg"
+  cat "$TEMP" | jq '.hdurl' | xargs -I '{}' curl "{}" -o "$1/$title"
+}
 
-rm $tmpFile
+while [ $# -ne 0 ]; do case "$1" in
+  -b|--bing) 
+    [ -n "$USE" ] && error "Service already defined"
+    USE="bing"
+    shift
+    ;;
+  -n|--nasa)
+    [ -n "$USE" ] && error "Service already defined"
+    USE="nasa"
+    shift
+    ;;
+  -h|--help) 
+    usage 
+    exit 0 
+    ;;
+  *)
+    [ ! -d "$1" ] && error "Not valid output directory"
+    OUT="$1"
+    shift
+    ;;
+esac done
+
+[ -z "$USE" ] && error "You need to choose nasa or bing (check usage)"
+
+[ "$USE" = "nasa" ] && nasa "${OUT-${DEFAULT_OUT}}"
+[ "$USE" = "bing" ] && bing "${OUT-${DEFAULT_OUT}}"
