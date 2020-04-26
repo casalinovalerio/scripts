@@ -28,7 +28,7 @@ esac done
 
 [ -z "$INFILE" ]  && { printf "Input file not defined"; exit 1; }
 [ -f "$INFILE" ]  || { printf "Input file is not a regular file"; exit 1; }
-[ -z "$OUTFILE" ] && OUTFILE="${INFILE%.md}.pdf"
+[ -z "$OUTFILE" ] && OUTFILE="${INFILE%.*}.pdf"
 [ -n "$CSSFILE" ] && CMD="--css $CSSFILE" || CMD=""
 tempfile=$( mktemp )
 
