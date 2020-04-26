@@ -6,12 +6,16 @@
 # Checks
 [ -z "$1" ] && echo "Usage: extract <file>.<tar.gz|zip>" && exit 0
 [ -f "$1" ] || { echo "File doesn't exist!" && exit 1; }
+check() { 
+  command -v "$1" > /dev/null || { printf "%s not available\\n" "$1"; return 1; }
+}
 
 mime=$( file --mime-type -b "$1" )
 
 case "${mime#application/}" in
-  "gzip") tar xvzf $1  ;;
-  "zip")  unzip $1     ;;
+  "gzip") check tar && tar xvzf "$1" || exit 1 ;;
+  "zip")  check unzip && unzip "$1" || exit 1 ;;
+  "x-7z-compressed") check 7z && 7z x "$1" || exit 1 ;;
   *) printf "Not yet supported %s\\n" "$i" ;;
 esac
 
