@@ -18,46 +18,34 @@ usage(){
 	HERETO
 }
 
-check()
-{
-	command -v curl > /dev/null || error "You'll need curl."
-	command -v git > /dev/null || error "You'll need git."
-}
+check(){ command -v curl git > /dev/null || error "You'll need both curl and git" }
+add_lines(){ printf "%s" "$1" | nl; }
 
-add_lines()
-{
-	printf "%s" "$1" | nl
-}
-
-
-
-while [ "$1" != "" ]; do
-	case "$1" in
-		-h|--help)
-			usage
-			exit 0
-			;;
-		-t|--http)
-			{ [ -n "$http" ] || [ -n "$ssh" ]; } \
-				&& error "Error in protocol"
-			http="true"
-			;;
-		-s|--ssh)
-			{ [ -n "$http" ] || [ -n "$ssh" ]; } \
-				&& error "Error in protocol"
-			ssh="true"
-			;;
-		-u|--username)
-			[ -n "$user" ] && error "Username already defined"
-			shift
-			user="$1"
-			;;
-		*)
-			error "Unknown parameter $1"
-			;;
-	esac
-	shift
-done
+while [ $# -ne 0 ]; do case "$1" in
+  -h|--help)
+    usage
+    exit 0
+    ;;
+  -t|--http)
+    { [ -n "$http" ] || [ -n "$ssh" ]; } && error "Error in protocol"
+    http="true"
+    shift
+    ;;
+  -s|--ssh)
+    { [ -n "$http" ] || [ -n "$ssh" ]; } && error "Error in protocol"
+    ssh="true"
+    shift
+    ;;
+  -u|--username)
+    [ -n "$user" ] && error "Username already defined"
+    shift
+    user="$1"
+    shift
+    ;;
+  *)
+    error "Unknown parameter $1"
+    ;;
+esac done
 
 [ -z "$user" ] && error "No user specified"
 [ -z "$http" ] && [ -z "$ssh" ] && error "No method specified"
