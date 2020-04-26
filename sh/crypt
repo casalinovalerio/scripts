@@ -14,7 +14,7 @@ error() { printf "%s\\n" "$1" >&2; exit 1; }
 
 usage() 
 {
-	cat <<WHERETO
+	cat <<-WHERETO
 	
 	Your installation path:
 	$SCRIPT_FULLPATH
@@ -24,17 +24,17 @@ usage()
 	
 	Usage: $SCRIPT_NAME [options] [-e|-d] <input-file>
 	
-		-e	Encrypt the input file.
-		-d	Decrypt the input file.
-		-o	Name the output file, default name is 'out.ecrypt' 
-			for option -e, or 'out.dcrypt' for option -d
-		-h	Show this usage.
+		-e|--encrypt	Encrypt the input file.
+		-d|--decrypt	Decrypt the input file.
+		-o|--outfile	Name the output file, default name is 'out.ecrypt' 
+				for option -e, or 'out.dcrypt' for option -d
+		-h|--help	Show this usage.
 	
 	Examples: # You can change the extension too
 		$SCRIPT_NAME -e cleartext.txt -o encryptedFile.js
 		$SCRIPT_NAME -d ecryptedFile.js
 
-WHERETO
+	WHERETO
 }
 
 encrypt() 
@@ -53,37 +53,37 @@ decrypt()
 
 command -v openssl > /dev/null || error "You should have openssl installed to proceed..."
 
-while getopts "ho:d:e:" opt; do
-	case "$opt" in
-		e) 
+while [ $# -ne 0 ]; do case "$1" in
+		-e|--encrypt) 
 			[ -n "$flag" ] && error "-e and -d are mutually exclusive."
 			flag="e"
-			inFile="$OPTARG"
+			shift
+			inFile="$1"
 			[ ! -f "$inFile" ] && error "File doesn't exist.'"
+			shift
 			;;
-		d)
+		-d|--decrypt)
 			[ -n "$flag" ] && error "-e and -d are mutually exclusive."
 			flag="d"
-			inFile="$OPTARG"
+			shift
+			inFile="$1"
 			[ ! -f "$inFile" ] && error "File doesn't exist."
+			shift
 			;;
-		o)
-			outFile="$OPTARG"
+		-o|--outfile)
+			shift
+			[ -n "$outFile" ] && error "outFile already defined"
+			outFile="$1"
+			shift
 			;;
-		h)
+		-h|--help)
 			usage
 			exit 0
 			;;
-		:)
-        		error "Option -$opt requires an argument."
-        		;;
 		*)
-			error "Unknown option $opt"
+			error "Unknown option $1"
 			;;
-	esac
-done
+esac done
 
-[ -z "$outFile" ] && [ "$flag" = "d" ] && outFile="out.dcrypt"  
-[ -z "$outFile" ] && [ "$flag" = "e" ] && outFile="out.ecrypt"
-[ "$flag" = "e" ] && encrypt "$inFile" "$outFile"
-[ "$flag" = "d" ] && decrypt "$inFile" "$outFile"
+[ "$flag" = "d" ] && outFile=${outFile:-out.dcrypt} && decrypt "$inFile" "$outFile"
+[ "$flag" = "e" ] && outFile=${outFile:-out.ecrypt} && encrypt "$inFile" "$outFile"
