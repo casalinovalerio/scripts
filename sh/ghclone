@@ -8,17 +8,17 @@
 error() { printf "\033[31m%s\033[0m\\n" "$1"; exit 1; }
 
 usage(){ 
-	cat <<-HERETO
-	Usage: $( basename $0 ) [-h] [-t|-s] -u <username>
-
-	-h|--help	Print usage
-	-t|--http	Clone with hhtps
-	-s|--ssh	Clone with ssh
-	-u|--username	Supply username
-	HERETO
+  printf "Usage: %s [-h] [-t|-s] -u <username>\\n\\n" "$( basename $0 )"
+  printf "        -h|--help      Print usage\\n"
+  printf "        -t|--http      Clone with https (default)\\n"
+  printf "        -s|--ssh       Clone with ssh\\n"
+  printf "        -u|--username  Supply username\\n"
 }
 
-check(){ command -v curl git > /dev/null || error "You'll need both curl and git" }
+check(){ 
+  command -v curl git jq >/dev/null || error "You'll curl, jq and git"
+}
+
 add_lines(){ printf "%s" "$1" | nl; }
 
 while [ $# -ne 0 ]; do case "$1" in
@@ -27,13 +27,13 @@ while [ $# -ne 0 ]; do case "$1" in
     exit 0
     ;;
   -t|--http)
-    { [ -n "$http" ] || [ -n "$ssh" ]; } && error "Error in protocol"
-    http="true"
+    [ -n $mode ] && error "Error in protocol"
+    mode="http"
     shift
     ;;
   -s|--ssh)
-    { [ -n "$http" ] || [ -n "$ssh" ]; } && error "Error in protocol"
-    ssh="true"
+    [ -n "$mode" ] && error "Error in protocol"
+    mode="ssh"
     shift
     ;;
   -u|--username)
@@ -44,13 +44,18 @@ while [ $# -ne 0 ]; do case "$1" in
     ;;
   *)
     error "Unknown parameter $1"
+    exit 1
     ;;
 esac done
 
 [ -z "$user" ] && error "No user specified"
-[ -z "$http" ] && [ -z "$ssh" ] && error "No method specified"
+mode=${mode:-http}
 
-list=$( curl -s "https://api.github.com/users/$user/repos" | grep "clone_url\|description" | tr -d "," 	| nl )
+list=$( 
+  curl -s "https://api.github.com/users/$user/repos" \
+  | grep "clone_url\|description" \
+  | tr -d "," 	| nl \
+)
 
 n=$( printf "%s" "$list" | wc -l )
 newline=$( printf "\\n" )
@@ -74,10 +79,15 @@ printf "%*s\\n" "40" | tr " " "="
 
 printf "Choose the repo: "
 read -r choice
-{ [ "$choice" -lt 1 ] || [ "$choice" -gt "$k" ]; } && error "Number not in range"
 
-printf "%s" "$collection"; read -r l
+[ $choice -eq $choice 2>/dev/null ] || error "Not a number"
+{ [ "$choice" -lt 1 ] || [ "$choice" -gt "$k" ];} && error "Number not in range"
 
 repo=$( printf "%s" "$collection" | grep "^$choice" | cut -d "~" -f 2 )
-[ -n "$ssh" ] && git clone "git@github.com:$user/$repo.git"
-[ -n "$http" ] && git clone "https://github.com/$user/$repo.git"
+printf "%s\\nIs this your choice? [y/N] " "$repo"
+
+read -r l
+([ $l = "y" ] || [ $l = "Y" ]) 2>/dev/null || error "Abort"
+
+[ "$mode" = "ssh" ]  && git clone "git@github.com:$user/$repo.git"
+[ "$mode" = "http" ] && git clone "https://github.com/$user/$repo.git"
