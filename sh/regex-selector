@@ -5,7 +5,7 @@
 ################################################################################
 
 ### Variables
-_url="https://git.io/Jfzpu"
+_url="https://git.io/JfgTQ"
 _cfgfile="${XDG_DATA_HOME:-$HOME/.local/share}/regex-list.txt"
 
 ### Functions
@@ -18,7 +18,7 @@ usage() {
   printf "        -c, --custom      Use the argument as config file\\n"
 }
 
-_generate_cfgfile() { [ -f "$_cfgfile" ] || wget "$_url" -O "$_cfgfile"; }
+_generate_cfgfile() { [ -f "$_cfgfile" ] || wget --quiet "$_url" -O "$_cfgfile"; }
 
 _is_good_input() {
   [ "$1" -eq "$1" 2>/dev/null ] && [ "$1" -gt 0 ] && [ "$1" -le "$2" ]
