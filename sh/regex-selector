@@ -1,0 +1,45 @@
+#!/usr/bin/env sh
+################################################################################
+### Author:      Valerio Casalino                                            ###
+### Description: Copy Useful regexs to clipboard                             ###
+################################################################################
+
+### Variables
+_url="https://git.io/Jfzpu"
+_cfgfile="${XDG_DATA_HOME:-$HOME/.local/share}/regex-list.txt"
+
+### Functions
+usage() {
+  printf "Usage: regex-selector [OPTIONS] <args>\\n\\n"
+  printf "    OPTIONS:\\n"
+  printf "        -h, --help        Print Usage\\n"
+  printf "        -r, --regenerate  Regenerate regex-list (use after custom\\n"
+  printf "                          location argument)\\n"
+  printf "        -c, --custom      Use the argument as config file\\n"
+}
+
+_generate_cfgfile() { [ -f "$_cfgfile" ] || wget "$_url" -O "$_cfgfile"; }
+
+_is_good_input() {
+  [ "$1" -eq "$1" 2>/dev/null ] && [ "$1" -gt 0 ] && [ "$1" -le "$2" ]
+}
+
+### Actual script
+
+# Args parsing
+while [ "$#" -gt 0 ]; do case "$1" in
+  -h|--help) usage && exit 0 ;;
+  -r|--regenerate) rm "$_cfgfile"; _generate_cfgfile ;;
+  -c|--custom) shift; _cfgfile="$1" ;; 
+  *) ;;
+esac; shift; done
+
+# Acquire input
+cat "$_cfgfile" | cut -d " " -f 1 | nl
+_nlines=$( wc -l "$_cfgfile" | cut -d ' ' -f 1 )
+printf "Choose the regex to copy: " && read -r _choice
+_is_good_input "$_choice" "$_nlines" || exit 1
+
+# Copy correct line to clipboard
+sed "${_choice}q;d" "$_cfgfile" | cut -d " " -f 2- | xclip -selection c \
+  && printf "Copied to clipboard\\n"
