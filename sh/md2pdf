@@ -8,12 +8,12 @@ usage() {
 while [ $# -ne 0 ]; do case $1 in
   -o) 
     shift
-    [ -z "$OUTFILE" ] && OUTFILE="$1" || { printf "Outfile already defined\\n"; exit 1; } 
+    { [ -z "$OUTFILE" ] && OUTFILE="$1"; } || { printf "Outfile already defined\\n"; exit 1; } 
     shift
     ;;
   -c)
     shift
-    [ -z "$CSSFILE" ] && CSSFILE="$1" || { printf "CSSfile already defined\\n"; exit 1; }
+    { [ -z "$CSSFILE" ] && CSSFILE="$1"; } || { printf "CSSfile already defined\\n"; exit 1; }
     shift
     ;;
   -h)
@@ -21,7 +21,7 @@ while [ $# -ne 0 ]; do case $1 in
     exit 0
     ;;
   *)
-    [ -z "$INFILE" ] && INFILE="$1" || { printf "Input already defined\\n"; exit 1; }
+    { [ -z "$INFILE" ] && INFILE="$1"; } || { printf "Input already defined\\n"; exit 1; }
     shift
     ;;
 esac done
