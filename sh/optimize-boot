@@ -3,14 +3,14 @@
 # Description:	Making systemd reduce boot time removing server features
 # Licence:	GPLv3
 
-error() { printf "E: $1\\n"; exit 1; }
-message() { printf "M: $1\\n"; }
+error() { printf "E: %s\\n" "$1"; exit 1; }
+message() { printf "M: %s\\n" "$1"; }
 
 # You need to use systemd and run as root
 pidof systemd || error "You need systemd! Abort.";
-[ $( whoami ) != "root" ] && error "Run as root please"
+[ "$( whoami )" != "root" ] && error "Run as root please"
 
-message "Script location: $( readlink -f $0 )"
+message "Script location: $( readlink -f "$0" )"
 
 # https://askubuntu.com/a/1187165
 message "Cleaning systemd journal (see script for info)..."
