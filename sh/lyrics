@@ -5,26 +5,22 @@
 # Decription	: Get song lyrics using lyrics.ovh API
 ################################################################################
 
+_scriptname=$( readlink -f "$0" | xargs basename )
+
 error() { printf "\033[31m%s\033[0m\\n" "$1"; exit 1; }
 
-usage()
-{
-	cat <<-HERETO 
-	Usage: $( basename $0 ) <author> <song title>
-
-	Simple as that
-	HERETO
+usage() {
+  printf "Usage: %s <author> <song title>\\nSimple as that\\n" "$_scriptname"
 }
 
-url_encode()
-{
-	command -v python3 > /dev/null \
-		&& python3 -c "import urllib.parse; print(urllib.parse.quote(input()))" <<< "$1" \
-		&& return 0
-	command -v python2 > /dev/null \
-		&& python2 -c "import urllib;print urllib.quote(raw_input())" <<< "$1" \
-		&& return 0
-	return 1
+url_encode() {
+  command -v python3 > /dev/null \
+    && python3 -c "import urllib.parse; print(urllib.parse.quote($1))" \
+    && return 0
+  command -v python2 > /dev/null \
+    && python2 -c "import urllib;print urllib.quote($1)" \
+    && return 0
+  return 1
 }
 
 [ "$#" -ne 2 ] && { usage; error "Error: You need 2 arguments"; }
