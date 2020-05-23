@@ -16,6 +16,6 @@ case "${mime#application/}" in
   "gzip") check tar && tar xvzf "$1" || exit 1 ;;
   "zip")  check unzip && unzip "$1" || exit 1 ;;
   "x-7z-compressed") check 7z && 7z x "$1" || exit 1 ;;
-  *) printf "Not yet supported %s\\n" "$i" ;;
+  *) printf "Not yet supported %s\\n" "$1" ;;
 esac
 
