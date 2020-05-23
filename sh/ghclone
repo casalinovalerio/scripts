@@ -8,7 +8,7 @@
 error() { printf "\033[31m%s\033[0m\\n" "$1"; exit 1; }
 
 usage(){ 
-  printf "Usage: %s [-h] [-t|-s] -u <username>\\n\\n" "$( basename $0 )"
+  printf "Usage: %s [-h] [-t|-s] -u <username>\\n\\n" "$( basename "$0" )"
   printf "        -h|--help      Print usage\\n"
   printf "        -t|--http      Clone with https (default)\\n"
   printf "        -s|--ssh       Clone with ssh\\n"
@@ -27,67 +27,56 @@ while [ $# -ne 0 ]; do case "$1" in
     exit 0
     ;;
   -t|--http)
-    [ -n $mode ] && error "Error in protocol"
+    [ -n "$mode" ] && error "Error in protocol"
     mode="http"
-    shift
     ;;
   -s|--ssh)
     [ -n "$mode" ] && error "Error in protocol"
     mode="ssh"
-    shift
     ;;
   -u|--username)
     [ -n "$user" ] && error "Username already defined"
     shift
     user="$1"
-    shift
     ;;
   *)
     error "Unknown parameter $1"
-    exit 1
     ;;
-esac done
+esac; shift; done
 
 [ -z "$user" ] && error "No user specified"
 mode=${mode:-http}
+temp=$( mktemp )
 
-list=$( 
-  curl -s "https://api.github.com/users/$user/repos" \
+curl -s "https://api.github.com/users/$user/repos" \
   | grep "clone_url\|description" \
-  | tr -d "," 	| nl \
-)
+  | tr -d "," \
+  | cut -d "\"" -f 4- \
+  | tr -d "\"" \
+  | tee "$temp" \
+  | wc -l \
+  | xargs -I '{}' test "{}" -eq 0 \
+  && rm -rf "$temp" \
+  && error "User has no repos"
 
-n=$( printf "%s" "$list" | wc -l )
-newline=$( printf "\\n" )
-i=1
-k=0
-collection=""
+printf "%40s\\n" " " | tr " " "="
+tac "$temp" \
+  | awk 'NR%2==1 { printf $0 ": " }; NR%2==0 { print $0 }' \
+  | cut -d "/" -f 5- \
+  | tac \
+  | sed "s/.git//" \
+  | nl
+printf "%40s\\n" " " | tr " " "="
 
-[ "$n" -eq 0 ] && error "User has no repos"
+nrepos=$( sed '1d;n;d' "$temp" | wc -l )
+printf "Choose the repo: " && read -r choice
+[ "$choice" -eq "$choice" ] 2>/dev/null || error "Not a number"
+{ [ "$choice" -ge 1 ] && [ "$choice" -le "$nrepos" ]; } || error "Not in range"
 
-printf "%*s\\n" "40" | tr " " "="
-while [ "$i" -le "$n" ]; do
-	k=$(( k+1 ))
-	desc=$( printf "%s" "$list" | sed -n "${i}p" | cut -d "\"" -f 4- | tr -d "\"" )
-	i=$(( i+1 ))
-	name=$( printf "%s" "$list" | sed -n "${i}p" | cut -d "\"" -f 4- | cut -d "/" -f 5 | cut -d "." -f 1 )
-	i=$(( i+1 ))
-	collection=$( printf "%s\\n%s~%s~%s" "$collection" "$k" "$name" "$desc" )
-	printf "\e[0;31m%-2s - \e[0;32m%s\e[m: %s %s\\n" "$k" "$name" "$desc"
-done
-printf "%*s\\n" "40" | tr " " "="
-
-printf "Choose the repo: "
-read -r choice
-
-[ $choice -eq $choice 2>/dev/null ] || error "Not a number"
-{ [ "$choice" -lt 1 ] || [ "$choice" -gt "$k" ];} && error "Number not in range"
-
-repo=$( printf "%s" "$collection" | grep "^$choice" | cut -d "~" -f 2 )
-printf "%s\\nIs this your choice? [y/N] " "$repo"
-
-read -r l
-([ $l = "y" ] || [ $l = "Y" ]) 2>/dev/null || error "Abort"
-
-[ "$mode" = "ssh" ]  && git clone "git@github.com:$user/$repo.git"
-[ "$mode" = "http" ] && git clone "https://github.com/$user/$repo.git"
+choice=$(( choice+choice ))
+repo=$( sed "${choice}q;d" "$temp" | cut -d "/" -f 5- )
+printf "%s\\nIs this your choice? [y/N] " "$repo" && read -r l
+{ [ "$l" = "y" ] || [ "$l" = "Y" ]; } 2>/dev/null || error "Abort"
+[ "$mode" = "ssh" ]  && git clone "git@github.com:$user/$repo"
+[ "$mode" = "http" ] && git clone "https://github.com/$user/$repo"
+rm "$temp"
