@@ -8,82 +8,62 @@
 ########################################################################
 
 SCRIPT_FULLPATH=$( echo "$0" | xargs readlink -f )
-SCRIPT_NAME=$( printf "$SCRIPT_FULLPATH" | xargs basename )
+SCRIPT_NAME=$( printf "%s" "$SCRIPT_FULLPATH" | xargs basename )
 
 error() { printf "%s\\n" "$1" >&2; exit 1; }
 
-usage() 
-{
-	cat <<-WHERETO
-	
-	Your installation path:
-	$SCRIPT_FULLPATH
-	
-	Description: An openssl wrapper that you can use to encrypt and 
-	             decrypt files.
-	
-	Usage: $SCRIPT_NAME [options] [-e|-d] <input-file>
-	
-		-e|--encrypt	Encrypt the input file.
-		-d|--decrypt	Decrypt the input file.
-		-o|--outfile	Name the output file, default name is 'out.ecrypt' 
-				for option -e, or 'out.dcrypt' for option -d
-		-h|--help	Show this usage.
-	
-	Examples: # You can change the extension too
-		$SCRIPT_NAME -e cleartext.txt -o encryptedFile.js
-		$SCRIPT_NAME -d ecryptedFile.js
-
-	WHERETO
+usage() {
+  printf "Your installation path:\\n%s\\n" "$SCRIPT_FULLPATH" \
+         "Description: An openssl wrapper that you can use to encrypt and" \
+         "decrypt files.\\n" \
+         "Usage: %s [options] [-e|-d] <input-file>\\n" "$SCRIPT_NAME" \
+         "    -e|--encrypt    Encrypt the input file.\\n" \
+         "    -d|--decrypt    Decrypt the input file.\\n" \
+         "    -o|--outfile    Name output file, default is 'out.ecrypt'\\n" \
+         "                    for option -e, or 'out.dcrypt' for option -d\\n" \
+         "    -h|--help       Show this usage.\\n" \
+         "Examples: # You can change the extension too\\n" \
+         "    %s -e cleartext.txt -o encryptedFile.js\\n" "$SCRIPT_NAME" \
+         "    %s -d ecryptedFile.js\\n" "$SCRIPT_NAME"
 }
 
-encrypt() 
-{
-	printf "Encrypting %s...\\n" "$1"
-	openssl enc -aes-256-cbc -salt -pbkdf2 -in "$1" -out "$2" || error "Something went wrong... Abort."
-	printf "File successfully encrypted!\\n"
+encrypt() {
+  printf "Encrypting %s...\\n" "$1"
+  openssl enc -aes-256-cbc -salt -pbkdf2 -in "$1" -out "$2" || error "Something went wrong... Abort."
+  printf "File successfully encrypted!\\n"
 }
 
-decrypt()
-{
-	printf "Decrypting %s...\\n" "$1"
-	openssl enc -aes-256-cbc -d -pbkdf2 -in "$1" -out "$2" || error "Something went wrong... Abort."
-	printf "File successfully decrypted!\\n"
+decrypt() {
+  printf "Decrypting %s...\\n" "$1"
+  openssl enc -aes-256-cbc -d -pbkdf2 -in "$1" -out "$2" || error "Something went wrong... Abort."
+  printf "File successfully decrypted!\\n"
 }
 
 command -v openssl > /dev/null || error "You should have openssl installed to proceed..."
 
 while [ $# -ne 0 ]; do case "$1" in
-		-e|--encrypt) 
-			[ -n "$flag" ] && error "-e and -d are mutually exclusive."
-			flag="e"
-			shift
-			inFile="$1"
-			[ ! -f "$inFile" ] && error "File doesn't exist.'"
-			shift
-			;;
-		-d|--decrypt)
-			[ -n "$flag" ] && error "-e and -d are mutually exclusive."
-			flag="d"
-			shift
-			inFile="$1"
-			[ ! -f "$inFile" ] && error "File doesn't exist."
-			shift
-			;;
-		-o|--outfile)
-			shift
-			[ -n "$outFile" ] && error "outFile already defined"
-			outFile="$1"
-			shift
-			;;
-		-h|--help)
-			usage
-			exit 0
-			;;
-		*)
-			error "Unknown option $1"
-			;;
-esac done
+  -e|--encrypt) 
+    [ -n "$flag" ] && error "-e and -d are mutually exclusive."
+    flag="e"
+    shift
+    inFile="$1"
+    [ ! -f "$inFile" ] && error "File doesn't exist.'"
+    ;;
+  -d|--decrypt)
+    [ -n "$flag" ] && error "-e and -d are mutually exclusive."
+    flag="d"
+    shift
+    inFile="$1"
+    [ ! -f "$inFile" ] && error "File doesn't exist."
+    ;;
+  -o|--outfile)
+    shift
+    [ -n "$outFile" ] && error "outFile already defined"
+    outFile="$1"
+    ;;
+  -h|--help) usage && exit 0 ;;
+  *) error "Unknown option $1" ;;
+esac; shift; done
 
 [ "$flag" = "d" ] && outFile=${outFile:-out.dcrypt} && decrypt "$inFile" "$outFile"
 [ "$flag" = "e" ] && outFile=${outFile:-out.ecrypt} && encrypt "$inFile" "$outFile"
