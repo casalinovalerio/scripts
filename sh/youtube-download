@@ -11,7 +11,7 @@ install_pkg() {
 		pkexec chmod a+rx /usr/local/bin/youtube-dl 	
 }
 
-error() { printf "$1\\n"; exit 1; }
+error() { printf "%s\\n" "$1"; exit 1; }
 
 usrname=$( users | head -n 1 )
 downloadPath="/home/$usrname/Videos/yt"
