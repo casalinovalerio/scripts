@@ -6,12 +6,10 @@
 # Description		: Compress your PDF
 ###############################################################################
 
-SCRIPT_PATH=$( readlink -f $0 )
+SCRIPT_PATH=$( readlink -f "$0" )
 SCRIPT_NAME=$( printf "%s" "$SCRIPT_PATH" | xargs basename )
-LIB_PATH="$( printf "%s" "$SCRIPT_PATH" | xargs dirname )/lib"
-PUBKEY=$( printf "%s/ilovepdf_pubkey" "$LIB_PATH" )
 
-error() { printf "$1\\n" >&2 ; exit 1; }
+error() { printf "%s\\n" "$1" >&2 ; exit 1; }
 usage()
 {
 	cat <<-HERETO
