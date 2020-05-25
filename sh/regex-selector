@@ -21,7 +21,7 @@ usage() {
 _generate_cfgfile() { [ -f "$_cfgfile" ] || wget --quiet "$_url" -O "$_cfgfile"; }
 
 _is_good_input() {
-  [ "$1" -eq "$1" 2>/dev/null ] && [ "$1" -gt 0 ] && [ "$1" -le "$2" ]
+  [ "$1" -eq "$1" ] 2>/dev/null && [ "$1" -gt 0 ] && [ "$1" -le "$2" ]
 }
 
 ### Actual script
@@ -35,7 +35,7 @@ while [ "$#" -gt 0 ]; do case "$1" in
 esac; shift; done
 
 # Acquire input
-cat "$_cfgfile" | cut -d " " -f 1 | nl
+cut -d " " -f 1 "$_cfgfile" | nl
 _nlines=$( wc -l "$_cfgfile" | cut -d ' ' -f 1 )
 printf "Choose the regex to copy: " && read -r _choice
 _is_good_input "$_choice" "$_nlines" || exit 1
