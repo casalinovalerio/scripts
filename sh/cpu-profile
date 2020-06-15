@@ -5,9 +5,7 @@
 # Author	: Valerio Casalino
 # Description	: Use this script to tweak the power consuption of your laptop
 ################################################################################
-
 error() { printf "${RED}E: %s${NCL}\\n" "$1" >&2 && exit 1; }
-
 # Check if cpufrequctl is installed
 command -v cpufreqctl > /dev/null || error "You'll need cpufreqctl"
 
@@ -25,7 +23,6 @@ OND="ondemand"
 AVAIL_FRQ=$( cpufreqctl --frequency --available | tr ' ' '\n' )
 # Maximum number of cores
 MAX_CORES=$( find /sys/devices/system/cpu/ -maxdepth 1 -name "*cpu[0-9]*" -type d | wc -l )
-
 
 usage() {
   printf "Script path: %s\\n" "$SCRIPT_PATH" \
@@ -45,7 +42,7 @@ usage() {
 confirm() {
   printf "Governor: %s\\nFrequency: %s\\nCores: %s\\n" "$GOV" "$FRQ" "$CRS"
   printf "Is it correct? [y/N]: " && read -r yn
-  [ "$yn" != "y" ] && [ "$yn" != "Y" ] && return 1
+  expr "$yn" : "[yY]" || return 1
   return 0
 }
 
@@ -87,7 +84,7 @@ while [ "$#" -ne 0 ]; do case "$1" in
   -g|--governor)
     [ -n "$GOV" ] && error "Too many governors"
     shift
-    [ "$1" != "$CON" ] && [ "$1" != "$SCH" ] && [ "$1" = "$OND" ] && [ "$1" = "$PER" ] && error "$1 is not accepted"
+    expr "$1" : "$CON\|$PER\|$SCH\|$OND" || error "$1 is not accepted"
     GOV="$1"
     ;;
   -c|--cores)
@@ -115,9 +112,7 @@ printf "Using '%s' driver\\n" "$DRIVER"
 # Get confirmation
 [ -z "$YES" ] && { confirm "$GOV" "$FRQ" "$CRS" || error "Abort."; }
 
-
 printf "Applying changes...\\n"
-
 printf "Changing the Governor to: %s...\\n" "$GOV"
 sudo cpufreqctl --governor --set="$GOV" > /dev/null 2>&1 || error "Failed to set governor"
 
