@@ -46,7 +46,7 @@ compress() {
 
 command -v gs > /dev/null || error "You need gs to run this script"
 
-while [ "$#" -ne 0]; do case "$1" in
+while [ "$#" -ne 0 ]; do case "$1" in
   -m|--mode)
     shift
     [ "$1" = "low" ] && mode="screen"

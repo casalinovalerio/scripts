@@ -33,6 +33,6 @@ esac done
 tempfile=$( mktemp )
 
 pandoc "$INFILE" -f gfm -t html --output "$tempfile"
-pandoc "$tempfile" -f html -t pdf $CMD --pdf-engine=wkhtmltopdf --output "$OUTFILE"
+pandoc "$tempfile" -f html -t pdf "$CMD" --pdf-engine=wkhtmltopdf --output "$OUTFILE"
 
 rm "$tempfile"
