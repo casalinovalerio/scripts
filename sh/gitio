@@ -1,0 +1,35 @@
+#!/usr/bin/env sh
+################################################################################
+# Author		: Valerio Casalino
+# Description		: This script shorten any github url with 
+# 			  git.io/<something> (even that you can choose)
+################################################################################
+
+_scriptname=$( readlink -f "$0" | xargs basename )
+
+error() { printf "%s\\n" "$1"; exit 1; }
+usage() {
+  printf "Usage: %s github.com/<anything> (opt: -c custom)\\n" "$_scriptname" \
+         "Outputs https://git.io/(<some-short-string> or <custom>)\\n"
+}
+
+while [ "$#" -ne 0 ]; do case $1 in
+  -c)
+    [ -n "$code" ] && error "code already defined"
+    shift
+    code="$1"
+    ;;
+  *)
+    [ -n "$url" ] && error "Url already defined"
+    url="$1"
+    ;;
+esac; shift; done
+
+args="url=$url"
+[ -n "$code" ] && args="$args&code=$code"
+
+curl -is https://git.io -d "$args" || error "No internet connection" \
+  | grep "Location:" || error "Unprocessable Entity" \
+  | cut -d' ' -f2 \
+  | xargs -I '{}' printf "{}\\n" \
+  || error "No internet connection or Invalid URL"

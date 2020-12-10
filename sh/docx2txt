@@ -1,0 +1,8 @@
+#!/bin/sh
+# Utility to extract text from a .docx file.
+
+test -f "$1" \
+  || { printf "\e[31m==>\e[0m %s is not a regular file\\n" "$1"; exit 1; }
+
+unzip -p "$1" word/document.xml \
+  | sed -e 's/<\/w:p>/\n/g; s/<[^>]\{1,\}>//g; s/[^[:print:]\n]\{1,\}//g'

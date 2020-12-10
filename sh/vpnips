@@ -1,0 +1,19 @@
+#!/bin/sh
+
+command -v ip >/dev/null || exit 1
+
+function check() {
+    ip l show tun0 || ip l show tap0
+}
+
+function getips() {
+    ip a | grep -e "inet.*tun\|inet.*tap" \
+    | sed "s/.*inet //g;s/\/[0-9]\{1,2\}.*//g" \
+    | tr '\n' '-' \
+    | rev \
+    | cut -d '-' -f 2- \
+    | rev
+}
+
+check >/dev/null && getips || exit 1
+

@@ -1,0 +1,5 @@
+#!/bin/sh
+# Preview markdown file
+
+command -v lowdown groff > /dev/null && [ -f "$1" ] || exit 1
+lowdown -sTms "$1" | groff -Tpdf -tki -mspdf -Kutf8 -FU-T | zathura -
