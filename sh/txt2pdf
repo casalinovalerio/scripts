@@ -1,0 +1,8 @@
+#!/bin/sh
+
+[ "$#" -ne 0 ] && [ "$#" -gt 2 ] && echo "[USAGE]: txt2pdf <input> [(optional): output]" && exit 1
+command -v enscript ghostscript >/dev/null || { echo "Install enscript and ghostscript"; exit 1; }
+[ ! -f "$1" ] && echo "$1 is not a file" && exit 1
+
+[ -n "$2" ] && out="$2" || out="${1%.*}.pdf"
+enscript --header='$n|%W|Page $% of $=' "$1" -p - | ps2pdf - "$out"
