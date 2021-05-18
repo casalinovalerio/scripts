@@ -2,11 +2,11 @@
 
 command -v ip >/dev/null || exit 1
 
-function check() {
+check() {
     ip l show tun0 || ip l show tap0
 }
 
-function getips() {
+getips() {
     ip a | grep -e "inet.*tun\|inet.*tap" \
     | sed "s/.*inet //g;s/\/[0-9]\{1,2\}.*//g" \
     | tr '\n' '-' \
