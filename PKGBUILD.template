@@ -1,0 +1,17 @@
+# Maintainer 5amu <v.casalino@protonmail.com>
+
+pkgname=5amuscripts
+pkgver=PKGVER
+pkgrel=PKGREL
+pkgdesc="Personal POSIX scripts"
+url="https://github.com/5amu/scripts/"
+license=('MIT')
+arch=('x86_64')
+makedepends=('make')
+depends=('bash')
+source=("${pkgname}-${pkgver}.tar.gz")
+sha256sums=("SKIP")
+
+package() {
+    make PREFIX=$pkgdir/usr install
+}
